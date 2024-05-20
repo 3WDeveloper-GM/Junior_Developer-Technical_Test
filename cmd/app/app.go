@@ -48,6 +48,7 @@ func (a *Application) setDependencies() {
 func (a *Application) setServer() {
 	a.Server = chi.NewRouter()
 	a.Server.Use(a.VisitedRouteLogger)
+  a.Server.Use(a.Authenticate)
 
 	a.Server.NotFound(a.Dependencies.Handlers.NotFoundErrorResponse)
 	a.Server.MethodNotAllowed(a.Dependencies.Handlers.NotAllowedErrorResponse)
