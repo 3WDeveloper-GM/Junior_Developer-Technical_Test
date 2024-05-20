@@ -1,8 +1,15 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/auth"
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/domain"
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 )
 
 func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
@@ -25,11 +32,10 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 			w.Header()[k] = v
 		}
 		w.WriteHeader(c.Code)
-    _, err := c.Body.WriteTo(w)
-
-    if err != nil {
-      app.Dependencies.Handlers.InternalServerErrorResponse(w,r,err)
-    }
+		_, err := c.Body.WriteTo(w)
+		if err != nil {
+			app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+		}
 
 		message = "sent the following response:"
 
@@ -52,5 +58,49 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 			}).
 				Msg(message)
 		}
+	})
+}
+
+func (app *Application) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Authorization")
+
+		authHeader := r.Header.Get("Authorization")
+
+		if authHeader == "" {
+			app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		headerParts := strings.Split(authHeader, " ")
+		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+			app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		currentToken := headerParts[1]
+
+		v := validator.NewValidator()
+
+		if domain.ValidatePasswordFromPlaintext(v, currentToken); !v.Valid() {
+			app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		user, err := app.Dependencies.Models.Users.GetForToken(auth.ScopeAuthentication, currentToken)
+		if err != nil {
+			switch {
+			case errors.Is(err, models.ErrNoRows):
+				app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			default:
+				app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
+    r = app.Dependencies.Context.ContextSetUser(r,user)
+
+    next.ServeHTTP(w,r)
 	})
 }

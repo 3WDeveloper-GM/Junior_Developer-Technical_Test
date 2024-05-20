@@ -9,8 +9,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var AnonUser = &Users{}
+
 func NewPassword() *passWord {
-  return &passWord{ }
+	return &passWord{}
 }
 
 func (p *passWord) Set(plaintext string) error {
@@ -30,7 +32,7 @@ func (p *passWord) Matches(plaintext string) (bool, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
-      fmt.Println("got here")
+			fmt.Println("got here")
 			return false, nil
 		default:
 			return false, err
@@ -40,8 +42,7 @@ func (p *passWord) Matches(plaintext string) (bool, error) {
 }
 
 func ValidateEmail(v validate, email string) {
-  
-  v.Check(email == strings.ToLower(email), "correoUsuario", "must be lowecase")
+	v.Check(email == strings.ToLower(email), "correoUsuario", "must be lowecase")
 
 	v.Check(email != "", "correoUsuario", "must be provided")
 	v.Check(validator.Matches(email, validator.EmailRX), "correoUsuario", "must be a valid email address")
@@ -67,5 +68,9 @@ func (usr *Users) ValidateUser(v validate) bool {
 		panic("missing password hash for usr")
 	}
 
-  return v.Valid()
+	return v.Valid()
+}
+
+func (usr *Users) IsAnonymous() bool {
+	return usr == AnonUser
 }

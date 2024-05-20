@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"time"
@@ -50,14 +51,14 @@ func (m *userModel) Fetch(email string) (*domain.Users, error) {
 	var user domain.Users
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-  defer cancel()
+	defer cancel()
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.SysID,
 		&user.Created_at,
 		&user.Name,
 		&user.Email,
-    &user.Password.Hash,
+		&user.Password.Hash,
 		&user.Activated,
 	)
 	if err != nil {
@@ -69,5 +70,42 @@ func (m *userModel) Fetch(email string) (*domain.Users, error) {
 		}
 	}
 
+	return &user, nil
+}
+
+func (m *userModel) GetForToken(tokenScope string, tokenPlaintext string) (*domain.Users, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+
+	query := `
+    SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+    FROM users
+    INNER JOIN tokens
+    ON users.id = tokens.user_id
+    WHERE tokens.hash = $1
+    AND tokens.scope = $2
+    AND tokens.expiry > $3`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{tokenHash, tokenScope, time.Now().Format(time.DateOnly)}
+
+	var user domain.Users
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.SysID,
+		&user.Created_at,
+		&user.Email,
+		&user.Password.Hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNoRows
+		default:
+			return nil, err
+		}
+	}
 	return &user, nil
 }

@@ -6,7 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/context"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers"
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
@@ -25,15 +27,19 @@ type Application struct {
 type dependency struct {
 	Handlers handlers.Handler
 	Models   models.AppModels
+	Context  context.ContextKey
+	Valid    validator.Validator
 }
 
 func (a *Application) setDependencies() {
 	mods := models.InitializeAppModels(a.Config.DB)
 	handler := handlers.NewHandlerInstance(portnumber, mods.Bills, mods.Users, mods.Tokens)
+	newCtx := context.NewContext()
 
 	depends := &dependency{
 		Handlers: *handler,
 		Models:   *mods,
+		Context:  *newCtx,
 	}
 
 	a.Dependencies = depends

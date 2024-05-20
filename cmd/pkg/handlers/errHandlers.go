@@ -36,3 +36,9 @@ func (h *Handler) ValidationErrorResponse(w http.ResponseWriter, r *http.Request
 func (h *Handler) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	h.genericErrorResponse(w, r, http.StatusUnauthorized, "invalid authorization/authentication credentials")
 }
+
+func (h *Handler) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+	message := "invalid or missing authentication token"
+	h.genericErrorResponse(w, r, http.StatusUnauthorized, message)
+}

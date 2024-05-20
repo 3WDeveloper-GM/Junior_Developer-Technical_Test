@@ -34,7 +34,7 @@ func GenerateNewToken(usedID int, ttl time.Duration, scope string) (*Token, erro
 	return token, nil
 }
 
-func (t *Token) ValidateTokenLength(v validate, tokenPlaintext string) {
+func ValidateTokenLength(v validate, tokenPlaintext string) {
 	v.Check(tokenPlaintext != "", "tokenPlaintext", "must be provided")
 	v.Check(len(tokenPlaintext) == 26, "tokenPlaintext", "token must be exactly 26 characters long")
 }
