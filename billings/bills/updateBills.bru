@@ -1,0 +1,32 @@
+meta {
+  name: updateBills
+  type: http
+  seq: 7
+}
+
+put {
+  url: http://localhost:4040/v1/updateBill
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "numeroRegistro": "970256502026993665",
+    "idFactura": "44595375-d8b4-4f36-9f01-b55cffaac7ec",
+    "fechaEmision": "13-marzo-2024",
+    "montoTotal": 23622,
+    "proveedor": {
+      "nombre": "ENRON",
+      "identificacion": "4307cbaf-58fa-49cd-aa74-47ca52ad7600"
+    },
+    "detalles": {
+      "importe_por_gravamen": 100,
+      "texto_aparte": "algo de texto"
+    },
+    "miscelaneo": {
+      "devolucion": "si",
+      "informacion_misc": "un extra"
+    }
+  }
+}

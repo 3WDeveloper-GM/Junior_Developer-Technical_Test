@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "billings",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -1,0 +1,17 @@
+meta {
+  name: fetchUser
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:4040/v1/users/fetch
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "correo":"billy.boy@microsoft.com"
+  }
+}

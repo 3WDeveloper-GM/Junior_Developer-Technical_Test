@@ -1,0 +1,18 @@
+meta {
+  name: authToken
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:4040/v1/tokens/authenticate
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "contraUsuario":"password55l33t",
+    "correoUsuario":"angel.boy@microsoft.com"
+  }
+}

@@ -1,0 +1,19 @@
+meta {
+  name: SendJson
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:4040/v1/sendJsonTest
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "hello world",
+    "integer": -2,
+    "some data": "motomoto"
+  }
+}
