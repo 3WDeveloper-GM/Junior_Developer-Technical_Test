@@ -77,7 +77,7 @@ func (m *userModel) GetForToken(tokenScope string, tokenPlaintext string) (*doma
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
 	query := `
-    SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+    SELECT users.provider_id, users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
     FROM users
     INNER JOIN tokens
     ON users.id = tokens.user_id
@@ -92,6 +92,7 @@ func (m *userModel) GetForToken(tokenScope string, tokenPlaintext string) (*doma
 
 	var user domain.Users
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+    &user.ProviderID,
 		&user.SysID,
 		&user.Created_at,
 		&user.Name,

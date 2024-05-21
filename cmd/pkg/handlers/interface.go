@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/auth"
@@ -14,16 +15,18 @@ type Handler struct {
 	users       UsrModel
 	tokens      TokenModel
 	permissions PermissionsModel
+	context     ContextRequest
 	help        Helper.Helper
 }
 
-func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel, permits PermissionsModel) *Handler {
+func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel, permits PermissionsModel, context ContextRequest) *Handler {
 	return &Handler{
-		portNumber: portNumber,
-		bills:      billMod,
-		users:      usrMod,
-		tokens:     tokMod,
-    permissions: permits,
+		portNumber:  portNumber,
+		bills:       billMod,
+		users:       usrMod,
+		tokens:      tokMod,
+		permissions: permits,
+		context:     context,
 	}
 }
 
@@ -31,7 +34,7 @@ type BillModel interface {
 	Create(payload *domain.Bill) error
 	Delete(id int) error
 	Fetch(bill *domain.Bill, id int) error
-	DateFetch(string, string) ([]*domain.Bill, error)
+	DateFetch(string, string, *domain.Users) ([]*domain.Bill, error)
 	Update(*domain.Bill) error
 }
 
@@ -49,4 +52,8 @@ type TokenModel interface {
 type PermissionsModel interface {
 	GrantPermissionToUser(userID int, codes ...string) error
 	GenerateUserPermissions() []string
+}
+
+type ContextRequest interface {
+	ContextGetUser(r *http.Request) *domain.Users
 }

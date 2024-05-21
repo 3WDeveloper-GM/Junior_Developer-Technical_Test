@@ -5,12 +5,16 @@ meta {
 }
 
 get {
-  url: http://localhost:4040/v1/fetchBills?startDate=2024-05-20&endDate=2024-05-21
+  url: http://localhost:4040/v1/bills/fetchAll?startDate=2024-05-19&endDate=2024-05-22
   body: none
   auth: none
 }
 
 query {
-  startDate: 2024-05-20
-  endDate: 2024-05-21
+  startDate: 2024-05-19
+  endDate: 2024-05-22
+}
+
+headers {
+  Authorization: Bearer HCJZNR654YF3YMTNKFRK647VLU
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,18 +26,29 @@ func (h *Handler) HealthCheckGET(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FetchBillGET(w http.ResponseWriter, r *http.Request) {
-	var bill domain.Bill
-
 	id := chi.URLParam(r, "id")
 
-	n, err := strconv.ParseInt(id, 10, 64)
+	n, err := strconv.Atoi(id)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
+		return
 	}
 
-	err = h.bills.Fetch(&bill, int(n))
+	user := h.context.ContextGetUser(r)
+	bill := &domain.Bill{}
+
+	bill.Provider.ProviderID = user.ProviderID
+	bill.Provider.Name = user.Name
+
+	err = h.bills.Fetch(bill, n)
 	if err != nil {
-		h.InternalServerErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			h.RowsNotFoundResponse(w, r)
+		default:
+			h.InternalServerErrorResponse(w, r, err)
+		}
+		return
 	}
 
 	render.JSON(w, r, bill)
@@ -74,8 +87,9 @@ func (h *Handler) BillsFetchByDateGET(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input.StartingDate, input.EndingDate = start, end
+	user := h.context.ContextGetUser(r)
 
-	bills, err := h.bills.DateFetch(input.StartingDate, input.EndingDate)
+	bills, err := h.bills.DateFetch(input.StartingDate, input.EndingDate, user)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return

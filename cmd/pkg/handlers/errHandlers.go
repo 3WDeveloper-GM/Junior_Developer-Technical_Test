@@ -43,6 +43,10 @@ func (h *Handler) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *h
 	h.genericErrorResponse(w, r, http.StatusUnauthorized, message)
 }
 
+func (h *Handler) RowsNotFoundResponse(w http.ResponseWriter, r *http.Request) {
+  h.genericErrorResponse(w,r,http.StatusNotFound,"Resource not found.")
+}
+
 func (h *Handler) ActivationNeededResponse(w http.ResponseWriter, r *http.Request) {
   h.genericErrorResponse(w,r,http.StatusUnauthorized, "user account must be activated in order to access this resource")
 }

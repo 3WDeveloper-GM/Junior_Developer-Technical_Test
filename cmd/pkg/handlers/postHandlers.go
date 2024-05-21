@@ -7,6 +7,7 @@ import (
 
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/auth"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/domain"
+	jsonbobjects "github.com/3WDeveloper-GM/billings/cmd/pkg/domain/jsonbObjects"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 	"github.com/go-chi/render"
@@ -40,13 +41,34 @@ func (h *Handler) SendJson(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) BillingPOST(w http.ResponseWriter, r *http.Request) {
-	var input domain.Bill
+	var data struct {
+		BillID       string                   `json:"idFactura"`
+		Date         string                   `json:"fechaEmision"`
+		TotalAmmount int                      `json:"montoTotal"`
+		Details      jsonbobjects.JsonObjects `json:"detalles,omitempty"`
+		Misc         jsonbobjects.JsonObjects `json:"miscelaneo,omitempty"`
+	}
 
-	err := render.DecodeJSON(r.Body, &input)
+	err := render.DecodeJSON(r.Body, &data)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return
 	}
+
+	user := h.context.ContextGetUser(r)
+
+	input := &domain.Bill{
+		BillID:       data.BillID,
+		Date:         data.Date,
+		TotalAmmount: &data.TotalAmmount,
+		Details:      data.Details,
+		Misc:         data.Misc,
+	}
+
+	input.Provider.ProviderID = user.ProviderID
+	input.Provider.Name = user.Name
+
+	// fmt.Println(*input)
 
 	valid := validator.NewValidator()
 
@@ -55,7 +77,7 @@ func (h *Handler) BillingPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.bills.Create(&input)
+	err = h.bills.Create(input)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return
@@ -114,13 +136,13 @@ func (h *Handler) UserCreatePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  err = h.permissions.GrantPermissionToUser(
-    input.SysID,
-    h.permissions.GenerateUserPermissions()...)
-  if err != nil {
-    h.InternalServerErrorResponse(w,r,err)
-    return
-  }
+	err = h.permissions.GrantPermissionToUser(
+		input.SysID,
+		h.permissions.GenerateUserPermissions()...)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+		return
+	}
 
 	response := map[string]interface{}{
 		"message": struct {

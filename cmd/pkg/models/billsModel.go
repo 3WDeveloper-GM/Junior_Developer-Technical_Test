@@ -57,34 +57,34 @@ func (b *billModel) Delete(id int) error {
 
 func (b *billModel) Fetch(bill *domain.Bill, id int) error {
 	stmt := `
-    SELECT id, id_factura, fecha_emision, monto_total,nombre_proveedor,id_proveedor,detalles, miscelaneo
+    SELECT id, id_factura, fecha_emision, monto_total,detalles, miscelaneo
     FROM bills
-    WHERE id = $1
+    WHERE id = $1 AND id_proveedor = $2
   `
+  
+  args := []interface{}{id, bill.Provider.ProviderID}
 
-	return b.DB.QueryRow(stmt, id).Scan(
+	return b.DB.QueryRow(stmt, args...).Scan(
 		&bill.SysID,
 		&bill.BillID,
 		&bill.Date,
 		&bill.TotalAmmount,
-		&bill.Provider.Name,
-		&bill.Provider.ProviderID,
 		&bill.Details,
 		&bill.Misc,
 	)
 }
 
-func (b *billModel) DateFetch(startingDate string, endingDate string) ([]*domain.Bill, error) {
+func (b *billModel) DateFetch(startingDate string, endingDate string, user *domain.Users) ([]*domain.Bill, error) {
 	stmt := `
-    SELECT id,id_factura,fecha_emision,monto_total,nombre_proveedor,id_proveedor,detalles, miscelaneo
+    SELECT id,id_factura,fecha_emision,monto_total,detalles, miscelaneo
     FROM bills
-    WHERE created_at >= $1 AND created_at <= $2
+    WHERE created_at >= $1 AND created_at <= $2 AND id_proveedor = $3 
   `
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
-	args := []interface{}{startingDate, endingDate}
+	args := []interface{}{startingDate, endingDate,user.ProviderID}
 
 	rows, err := b.DB.QueryContext(ctx, stmt, args...)
 	if err != nil {
@@ -94,15 +94,16 @@ func (b *billModel) DateFetch(startingDate string, endingDate string) ([]*domain
 	bills := []*domain.Bill{}
 
 	for rows.Next() {
-		var bill domain.Bill
+
+    bill := &domain.Bill{}
+    bill.Provider.ProviderID = user.ProviderID
+    bill.Provider.Name = user.Name
 
 		err := rows.Scan(
 			&bill.SysID,
 			&bill.BillID,
 			&bill.Date,
 			&bill.TotalAmmount,
-			&bill.Provider.Name,
-			&bill.Provider.ProviderID,
 			&bill.Details,
 			&bill.Misc,
 		)
@@ -110,7 +111,7 @@ func (b *billModel) DateFetch(startingDate string, endingDate string) ([]*domain
 			return nil, err
 		}
 
-		bills = append(bills, &bill)
+		bills = append(bills, bill)
 	}
 
 	if err := rows.Err(); err != nil {

@@ -32,14 +32,16 @@ type dependency struct {
 }
 
 func (a *Application) setDependencies() {
+
+  newCtx := context.NewContext()
+
 	mods := models.InitializeAppModels(a.Config.DB)
 	handler := handlers.NewHandlerInstance(
     portnumber, mods.Bills, 
     mods.Users, mods.Tokens,
-    mods.Permits,
+    mods.Permits, newCtx,
     )
 
-	newCtx := context.NewContext()
 
 	depends := &dependency{
 		Handlers: *handler,

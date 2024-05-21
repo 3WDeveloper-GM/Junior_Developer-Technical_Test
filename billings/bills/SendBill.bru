@@ -10,22 +10,24 @@ post {
   auth: none
 }
 
+headers {
+  Authorization: Bearer A5GVHHEELGFJVWK6SRPSQYIZ3Q
+  ~Authorization: Bearer O3BHCAI3FYDO2TF7R4BLIZOSHQ
+}
+
 body:json {
   {
     "idFactura": "b708066a-4082-41c4-962a-2c2604b91e4a",
     "fechaEmision": "18-marzo-2024",
-    "montoTotal": 5462600,
-    "proveedor": {
-      "nombre": "NETFLIX",
-      "identificacion": "ff21b6ba-9c01-444f-b8d1-760d78f60b0c"
-    },
+    "montoTotal": 50000000,
     "detalles": {
-      "texto_aparte": "algo de texto",
-      "importe_por_gravamen":100
+      "Concepto":"compra de medidores",
+      "Colonia":"Avenida Cervantes",
+      "caudalEfectivo":"50 m3"
     },
     "miscelaneo": {
-      "informacion_misc":"un extra",
-      "devolucion":"si"
+      "devolucion":"NO",
+      "ingenieroEncargado":"Cristian Zanabria"
     }
   }
 }
