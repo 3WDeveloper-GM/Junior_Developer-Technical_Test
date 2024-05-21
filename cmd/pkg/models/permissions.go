@@ -17,11 +17,11 @@ func (p Permissions) Include(code string) bool {
 	return false
 }
 
-type PermitModel struct {
+type permitModel struct {
 	DB *sql.DB
 }
 
-func (pm *PermitModel) GetPermissionsFromUser(userID int) (Permissions, error) {
+func (pm *permitModel) GetPermissionsFromUser(userID int) (Permissions, error) {
 	stmt := `
     SELECT permissions.code
     FROM permissions

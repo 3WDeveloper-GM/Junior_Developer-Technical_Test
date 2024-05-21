@@ -99,26 +99,47 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-    r = app.Dependencies.Context.ContextSetUser(r,user)
+		r = app.Dependencies.Context.ContextSetUser(r, user)
 
-    next.ServeHTTP(w,r)
+		next.ServeHTTP(w, r)
 	})
 }
 
 func (app *Application) RequireUserAuth(next http.HandlerFunc) http.HandlerFunc {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    user := app.Dependencies.Context.ContextGetUser(r)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := app.Dependencies.Context.ContextGetUser(r)
 
-    if user.IsAnonymous() {
-      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
-      return
-    }
+		if user.IsAnonymous() {
+			app.Dependencies.Handlers.AuthenticationFailedResponse(w, r)
+			return
+		}
 
-    if !user.Activated {
-      app.Dependencies.Handlers.ActivationNeededResponse(w,r)
-      return
-    }
+		if !user.Activated {
+			app.Dependencies.Handlers.ActivationNeededResponse(w, r)
+			return
+		}
 
-    next.ServeHTTP(w,r)
-  })
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *Application) RequirePermissions(code string, next http.HandlerFunc) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		user := app.Dependencies.Context.ContextGetUser(r)
+
+		permissions, err := app.Dependencies.Models.Permits.GetPermissionsFromUser(user.SysID)
+		if err != nil {
+			app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+			return
+		}
+
+		if !permissions.Include(code) {
+			app.Dependencies.Handlers.NotPermittedResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+
+	return app.RequireUserAuth(fn)
 }

@@ -4,12 +4,16 @@ func (a *Application) setRoutes() {
 	a.Server.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
 	a.Server.Get("/v1/bills/fetch/{id}", a.Dependencies.Handlers.FetchBillGET)
 	a.Server.Get("/v1/bills/fetchAll", a.Dependencies.Handlers.BillsFetchByDateGET)
-  a.Server.Get("/v1/users/fetch", a.Dependencies.Handlers.FetchUserByMailGET)
+	a.Server.Get("/v1/users/fetch", a.Dependencies.Handlers.FetchUserByMailGET)
 
-	a.Server.Post("/v1/sendJsonTest", a.Dependencies.Handlers.SendJson)
-	a.Server.Post("/v1/bills/create", a.Dependencies.Handlers.BillingPOST)
-  a.Server.Post("/v1/users/create", a.Dependencies.Handlers.UserCreatePOST)
-  a.Server.Post("/v1/tokens/authenticate", a.Dependencies.Handlers.CreateAuthTokenPOST)
+	a.Server.Post("/v1/sendJsonTest",
+		a.RequirePermissions("bills:write", a.Dependencies.Handlers.SendJson))
+	a.Server.Post("/v1/bills/create",
+		a.RequirePermissions("bills:write", a.Dependencies.Handlers.BillingPOST))
+	a.Server.Post("/v1/users/create",
+		a.RequirePermissions("bills:write", a.Dependencies.Handlers.UserCreatePOST))
+	a.Server.Post("/v1/tokens/authenticate",
+		a.RequirePermissions("bills:write", a.Dependencies.Handlers.CreateAuthTokenPOST))
 
 	a.Server.Delete("/v1/bills/delete/{id}", a.Dependencies.Handlers.SingleBillDELETE)
 

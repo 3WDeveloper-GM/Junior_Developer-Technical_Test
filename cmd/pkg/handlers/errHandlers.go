@@ -50,3 +50,7 @@ func (h *Handler) ActivationNeededResponse(w http.ResponseWriter, r *http.Reques
 func (h *Handler) AuthenticationFailedResponse(w http.ResponseWriter, r *http.Request) {
   h.genericErrorResponse(w,r,http.StatusUnauthorized, "you must be authenticated to access this resource")
 }
+
+func (h *Handler) NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
+  h.genericErrorResponse(w,r,http.StatusUnauthorized,"your user account doesn't have the permissions to access this resource")
+}
