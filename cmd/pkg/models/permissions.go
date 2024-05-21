@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type Permissions []string
@@ -26,7 +28,7 @@ func (pm *permitModel) GetPermissionsFromUser(userID int) (Permissions, error) {
     SELECT permissions.code
     FROM permissions
     INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
-    INNER JOIN users ON users_permissions.user_id = users.id WHERE users.id = $1
+    INNER JOIN users ON users_permissions.user_id = users.id 
     WHERE users.id = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -56,4 +58,23 @@ func (pm *permitModel) GetPermissionsFromUser(userID int) (Permissions, error) {
 	}
 
 	return permissions, nil
+}
+
+func (pm *permitModel) GenerateUserPermissions() []string {
+  return []string{"bills:write","bills:read"}
+} 
+
+func (pm *permitModel) GrantPermissionToUser(userID int, codes ...string) error {
+	stmt := `
+    INSERT INTO users_permissions
+    SELECT $1, permissions.id FROM permissions WHERE permissions.code = ANY($2) 
+  `
+
+	args := []interface{}{userID, pq.Array(codes)}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := pm.DB.ExecContext(ctx, stmt, args...)
+	return err
 }

@@ -10,5 +10,7 @@ CREATE TABLE IF NOT EXISTS users_permissions (
 -- Add the two permissions to the table.
 INSERT INTO permissions (code)
 VALUES
-('movies:read'),
-('movies:write');
+('bills:read'),
+('bills:write'),
+('users:read'),
+('users:write');

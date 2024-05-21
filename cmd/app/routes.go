@@ -1,19 +1,30 @@
 package app
 
+const (
+	USER_WRITE_PERMISSION  = "users:write"
+	USER_READ_PERMISSION   = "users:read"
+	BILLS_READ_PERMISSION  = "bills:read"
+	BILLS_WRITE_PERMISSION = "bills:write"
+)
+
 func (a *Application) setRoutes() {
 	a.Server.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
-	a.Server.Get("/v1/bills/fetch/{id}", a.Dependencies.Handlers.FetchBillGET)
-	a.Server.Get("/v1/bills/fetchAll", a.Dependencies.Handlers.BillsFetchByDateGET)
-	a.Server.Get("/v1/users/fetch", a.Dependencies.Handlers.FetchUserByMailGET)
+
+	a.Server.Get("/v1/bills/fetch/{id}",
+		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.FetchBillGET))
+	a.Server.Get("/v1/bills/fetchAll",
+		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.BillsFetchByDateGET))
+	a.Server.Get("/v1/users/fetch",
+		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.FetchUserByMailGET))
 
 	a.Server.Post("/v1/sendJsonTest",
-		a.RequirePermissions("bills:write", a.Dependencies.Handlers.SendJson))
+		a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.SendJson))
 	a.Server.Post("/v1/bills/create",
-		a.RequirePermissions("bills:write", a.Dependencies.Handlers.BillingPOST))
+		a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillingPOST))
 	a.Server.Post("/v1/users/create",
-		a.RequirePermissions("bills:write", a.Dependencies.Handlers.UserCreatePOST))
-	a.Server.Post("/v1/tokens/authenticate",
-		a.RequirePermissions("bills:write", a.Dependencies.Handlers.CreateAuthTokenPOST))
+		a.RequirePermissions(USER_WRITE_PERMISSION, a.Dependencies.Handlers.UserCreatePOST))
+
+	a.Server.Post("/v1/tokens/authenticate", a.Dependencies.Handlers.CreateAuthTokenPOST)
 
 	a.Server.Delete("/v1/bills/delete/{id}", a.Dependencies.Handlers.SingleBillDELETE)
 

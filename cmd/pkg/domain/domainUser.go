@@ -55,8 +55,11 @@ func ValidatePasswordFromPlaintext(v validate, plaintext string) {
 }
 
 func (usr *Users) ValidateUser(v validate) bool {
-	v.Check(usr.Name != "", "name", "must be provided")
-	v.Check(len(usr.Name) <= 500, "name", "must not be more than 500 bytes long")
+	v.Check(usr.ProviderID != "", "idProveedor", "must be provided")
+	v.Check(len(usr.ProviderID) == 36, "idProveedor", "must be a valid uuid signature")
+
+	v.Check(usr.Name != "", "nombreUsuario", "must be provided")
+	v.Check(len(usr.Name) <= 500, "nombreUsuario", "must not be more than 500 bytes long")
 
 	ValidateEmail(v, usr.Email)
 

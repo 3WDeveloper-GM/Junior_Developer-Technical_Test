@@ -26,7 +26,7 @@ func (h *Handler) NotFoundErrorResponse(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) NotAllowedErrorResponse(w http.ResponseWriter, r *http.Request) {
-	h.genericErrorResponse(w, r, http.StatusMethodNotAllowed, fmt.Sprintf("%s Method not allowed", r.Method))
+	h.genericErrorResponse(w, r, http.StatusMethodNotAllowed, fmt.Sprintf("%s method not allowed", r.Method))
 }
 
 func (h *Handler) ValidationErrorResponse(w http.ResponseWriter, r *http.Request, messages interface{}) {

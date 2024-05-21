@@ -9,19 +9,21 @@ import (
 )
 
 type Handler struct {
-	portNumber int
-	bills      BillModel
-	users      UsrModel
-	tokens     TokenModel
-	help       Helper.Helper
+	portNumber  int
+	bills       BillModel
+	users       UsrModel
+	tokens      TokenModel
+	permissions PermissionsModel
+	help        Helper.Helper
 }
 
-func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel) *Handler {
+func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel, permits PermissionsModel) *Handler {
 	return &Handler{
 		portNumber: portNumber,
 		bills:      billMod,
 		users:      usrMod,
 		tokens:     tokMod,
+    permissions: permits,
 	}
 }
 
@@ -42,4 +44,9 @@ type TokenModel interface {
 	Insert(token *auth.Token) error
 	New(user int, ttl time.Duration, scope string) (*auth.Token, error)
 	DeleteAllTokensFromUser(scope string, userID int) error
+}
+
+type PermissionsModel interface {
+	GrantPermissionToUser(userID int, codes ...string) error
+	GenerateUserPermissions() []string
 }

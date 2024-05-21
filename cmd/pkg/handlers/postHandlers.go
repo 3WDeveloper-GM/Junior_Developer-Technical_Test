@@ -10,6 +10,7 @@ import (
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) SendJson(w http.ResponseWriter, r *http.Request) {
@@ -82,9 +83,10 @@ func (h *Handler) UserCreatePOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := &domain.Users{
-		Name:      data.Name,
-		Email:     data.Email,
-		Activated: true,
+		ProviderID: uuid.NewString(),
+		Name:       data.Name,
+		Email:      data.Email,
+		Activated:  true,
 	}
 
 	err = input.Password.Set(data.PassWord)
@@ -111,6 +113,14 @@ func (h *Handler) UserCreatePOST(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+  err = h.permissions.GrantPermissionToUser(
+    input.SysID,
+    h.permissions.GenerateUserPermissions()...)
+  if err != nil {
+    h.InternalServerErrorResponse(w,r,err)
+    return
+  }
 
 	response := map[string]interface{}{
 		"message": struct {
@@ -177,8 +187,8 @@ func (h *Handler) CreateAuthTokenPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	message := map[string]interface{}{
-		"created": true,
-		"resultado":   token,
+		"created":   true,
+		"resultado": token,
 	}
 
 	render.JSON(w, r, message)

@@ -18,11 +18,11 @@ var ErrDuplicateMail = errors.New("duplicate email")
 
 func (m *userModel) Create(user *domain.Users) error {
 	query := `
-    INSERT INTO users (name, email, password_hash, activated)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO users (provider_id, name, email, password_hash, activated)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id, created_at, version`
 
-	args := []interface{}{user.Name, user.Email, user.Password.Hash, user.Activated}
+	args := []interface{}{user.ProviderID, user.Name, user.Email, user.Password.Hash, user.Activated}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -94,7 +94,7 @@ func (m *userModel) GetForToken(tokenScope string, tokenPlaintext string) (*doma
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.SysID,
 		&user.Created_at,
-    &user.Name, 
+		&user.Name,
 		&user.Email,
 		&user.Password.Hash,
 		&user.Activated,

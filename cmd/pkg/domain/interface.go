@@ -32,6 +32,7 @@ type validate interface {
 type Users struct {
 	SysID      int       `json:"-"`
 	Created_at time.Time `json:"fechaCreacion"`
+	ProviderID string    `json:"idProveedor"`
 	Name       string    `json:"nombre"`
 	Email      string    `json:"email"`
 	Password   passWord  `json:"-"`
