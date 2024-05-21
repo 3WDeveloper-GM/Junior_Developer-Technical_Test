@@ -68,7 +68,7 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
-			app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			r = app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -103,4 +103,22 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 
     next.ServeHTTP(w,r)
 	})
+}
+
+func (app *Application) RequireUserAuth(next http.HandlerFunc) http.HandlerFunc {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    user := app.Dependencies.Context.ContextGetUser(r)
+
+    if user.IsAnonymous() {
+      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
+      return
+    }
+
+    if !user.Activated {
+      app.Dependencies.Handlers.ActivationNeededResponse(w,r)
+      return
+    }
+
+    next.ServeHTTP(w,r)
+  })
 }

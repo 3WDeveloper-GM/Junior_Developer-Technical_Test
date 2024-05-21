@@ -42,3 +42,11 @@ func (h *Handler) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *h
 	message := "invalid or missing authentication token"
 	h.genericErrorResponse(w, r, http.StatusUnauthorized, message)
 }
+
+func (h *Handler) ActivationNeededResponse(w http.ResponseWriter, r *http.Request) {
+  h.genericErrorResponse(w,r,http.StatusUnauthorized, "user account must be activated in order to access this resource")
+}
+
+func (h *Handler) AuthenticationFailedResponse(w http.ResponseWriter, r *http.Request) {
+  h.genericErrorResponse(w,r,http.StatusUnauthorized, "you must be authenticated to access this resource")
+}

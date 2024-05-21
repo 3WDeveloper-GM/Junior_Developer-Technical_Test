@@ -1,7 +1,7 @@
 package app
 
 func (a *Application) setRoutes() {
-	a.Server.Get("/v1/healthCheck", a.Dependencies.Handlers.HealthCheckGET)
+	a.Server.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
 	a.Server.Get("/v1/bills/fetch/{id}", a.Dependencies.Handlers.FetchBillGET)
 	a.Server.Get("/v1/bills/fetchAll", a.Dependencies.Handlers.BillsFetchByDateGET)
   a.Server.Get("/v1/users/fetch", a.Dependencies.Handlers.FetchUserByMailGET)
