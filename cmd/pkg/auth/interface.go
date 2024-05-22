@@ -5,7 +5,7 @@ import "time"
 type Token struct {
 	Plaintext string    `json:"token"`
 	Hash      []byte    `json:"-"`
-	UserId    int       `json:"-"`
+	UserId    int64       `json:"-"`
 	Expiry    time.Time `json:"expiracion"`
 	Scope     string    `json:"-"`
 }

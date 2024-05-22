@@ -28,7 +28,7 @@ func (h *Handler) HealthCheckGET(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) FetchBillGET(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	n, err := strconv.Atoi(id)
+	n, err := strconv.ParseInt(id,10,64)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return

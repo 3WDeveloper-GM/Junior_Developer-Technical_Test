@@ -23,7 +23,7 @@ type permitModel struct {
 	DB *sql.DB
 }
 
-func (pm *permitModel) GetPermissionsFromUser(userID int) (Permissions, error) {
+func (pm *permitModel) GetPermissionsFromUser(userID int64) (Permissions, error) {
 	stmt := `
     SELECT permissions.code
     FROM permissions
@@ -64,7 +64,7 @@ func (pm *permitModel) GenerateUserPermissions() []string {
   return []string{"bills:write","bills:read"}
 } 
 
-func (pm *permitModel) GrantPermissionToUser(userID int, codes ...string) error {
+func (pm *permitModel) GrantPermissionToUser(userID int64, codes ...string) error {
 	stmt := `
     INSERT INTO users_permissions
     SELECT $1, permissions.id FROM permissions WHERE permissions.code = ANY($2) 

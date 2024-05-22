@@ -12,7 +12,7 @@ const (
 	ScopeAuthentication = "authentication"
 )
 
-func GenerateNewToken(usedID int, ttl time.Duration, scope string) (*Token, error) {
+func GenerateNewToken(usedID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		UserId: usedID,
 		Expiry: time.Now().Add(ttl),

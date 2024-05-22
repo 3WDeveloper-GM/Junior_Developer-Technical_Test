@@ -33,7 +33,7 @@ func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokM
 type BillModel interface {
 	Create(payload *domain.Bill) error
 	Delete(id int) error
-	Fetch(bill *domain.Bill, id int) error
+	Fetch(bill *domain.Bill, id int64) error
 	DateFetch(string, string, *domain.Users) ([]*domain.Bill, error)
 	Update(*domain.Bill) error
 }
@@ -45,12 +45,12 @@ type UsrModel interface {
 
 type TokenModel interface {
 	Insert(token *auth.Token) error
-	New(user int, ttl time.Duration, scope string) (*auth.Token, error)
+	New(user int64, ttl time.Duration, scope string) (*auth.Token, error)
 	DeleteAllTokensFromUser(scope string, userID int) error
 }
 
 type PermissionsModel interface {
-	GrantPermissionToUser(userID int, codes ...string) error
+	GrantPermissionToUser(userID int64, codes ...string) error
 	GenerateUserPermissions() []string
 }
 

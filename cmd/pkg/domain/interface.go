@@ -8,7 +8,7 @@ import (
 
 // Bill is a structure to model the bills that are coming from the clients
 type Bill struct {
-	SysID        int       `json:"numeroRegistro"`
+	SysID        int64       `json:"numeroRegistro"`
 	Created_at   time.Time `json:"-"`
 	BillID       string    `json:"idFactura"`
 	Date         string    `json:"fechaEmision"`
@@ -30,7 +30,7 @@ type validate interface {
 
 // User is a structure that model the end user
 type Users struct {
-	SysID      int       `json:"-"`
+	SysID      int64       `json:"-"`
 	Created_at time.Time `json:"fechaCreacion"`
 	ProviderID string    `json:"idProveedor"`
 	Name       string    `json:"nombre"`

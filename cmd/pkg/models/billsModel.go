@@ -55,7 +55,7 @@ func (b *billModel) Delete(id int) error {
 	return nil
 }
 
-func (b *billModel) Fetch(bill *domain.Bill, id int) error {
+func (b *billModel) Fetch(bill *domain.Bill, id int64) error {
 	stmt := `
     SELECT id, id_factura, fecha_emision, monto_total,detalles, miscelaneo
     FROM bills
@@ -94,8 +94,9 @@ func (b *billModel) DateFetch(startingDate string, endingDate string, user *doma
 	bills := []*domain.Bill{}
 
 	for rows.Next() {
+    
+    var bill domain.Bill  
 
-    bill := &domain.Bill{}
     bill.Provider.ProviderID = user.ProviderID
     bill.Provider.Name = user.Name
 
@@ -111,7 +112,7 @@ func (b *billModel) DateFetch(startingDate string, endingDate string, user *doma
 			return nil, err
 		}
 
-		bills = append(bills, bill)
+		bills = append(bills, &bill)
 	}
 
 	if err := rows.Err(); err != nil {

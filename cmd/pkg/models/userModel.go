@@ -89,7 +89,6 @@ func (m *userModel) GetForToken(tokenScope string, tokenPlaintext string) (*doma
 	defer cancel()
 
 	args := []interface{}{tokenHash[:], tokenScope, time.Now().Format(time.DateOnly)}
-
 	var user domain.Users
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
     &user.ProviderID,

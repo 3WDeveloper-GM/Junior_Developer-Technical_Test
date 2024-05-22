@@ -26,7 +26,7 @@ func (tk *tokenModel) Insert(token *auth.Token) error {
 	return err
 }
 
-func (tk *tokenModel) New(user int, ttl time.Duration, scope string) (*auth.Token, error) {
+func (tk *tokenModel) New(user int64, ttl time.Duration, scope string) (*auth.Token, error) {
 	token, err := auth.GenerateNewToken(user, ttl, scope)
 	if err != nil {
 		return nil, err

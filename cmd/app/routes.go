@@ -15,7 +15,7 @@ func (a *Application) setRoutes() {
 	a.Server.Get("/v1/bills/fetchAll",
 		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.BillsFetchByDateGET))
 	a.Server.Get("/v1/users/fetch",
-		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.FetchUserByMailGET))
+		a.RequirePermissions(USER_READ_PERMISSION, a.Dependencies.Handlers.FetchUserByMailGET))
 
 	a.Server.Post("/v1/sendJsonTest",
 		a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.SendJson))
