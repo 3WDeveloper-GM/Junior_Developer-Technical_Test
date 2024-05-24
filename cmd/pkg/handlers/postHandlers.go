@@ -213,5 +213,17 @@ func (h *Handler) CreateAuthTokenPOST(w http.ResponseWriter, r *http.Request) {
 		"resultado": token,
 	}
 
+	cookie := http.Cookie{
+		Name:     "Bearer",
+		Value:    token.Plaintext,
+		Expires:  token.Expiry,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+		Path:     "/",
+	}
+
+	http.SetCookie(w, &cookie)
+
 	render.JSON(w, r, message)
 }

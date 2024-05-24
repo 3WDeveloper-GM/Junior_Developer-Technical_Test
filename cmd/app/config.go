@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -15,6 +16,9 @@ import (
 type Config struct {
 	database database
 	DB       *sql.DB
+	cors     struct {
+		trustedOrigins []string
+	}
 }
 
 type database struct {
@@ -36,6 +40,11 @@ func (a *Application) setConfiguration() error {
 	flag.IntVar(&cfg.database.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.database.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.database.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
+		cfg.cors.trustedOrigins = strings.Fields(val)
+		return nil
+	})
 
 	flag.Parse()
 
@@ -68,7 +77,7 @@ func (a *Application) setDBPool() error {
 	db.SetMaxIdleConns(a.Config.database.maxIdleConns)
 	duration, err := time.ParseDuration(a.Config.database.maxIdleTime)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	db.SetConnMaxIdleTime(duration)

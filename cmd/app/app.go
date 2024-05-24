@@ -11,6 +11,7 @@ import (
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -32,16 +33,14 @@ type dependency struct {
 }
 
 func (a *Application) setDependencies() {
-
-  newCtx := context.NewContext()
+	newCtx := context.NewContext()
 
 	mods := models.InitializeAppModels(a.Config.DB)
 	handler := handlers.NewHandlerInstance(
-    portnumber, mods.Bills, 
-    mods.Users, mods.Tokens,
-    mods.Permits, newCtx,
-    )
-
+		portnumber, mods.Bills,
+		mods.Users, mods.Tokens,
+		mods.Permits, newCtx,
+	)
 
 	depends := &dependency{
 		Handlers: *handler,
@@ -54,8 +53,19 @@ func (a *Application) setDependencies() {
 
 func (a *Application) setServer() {
 	a.Server = chi.NewRouter()
+	a.Server.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://localhost:5173"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Origin"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
 	a.Server.Use(a.VisitedRouteLogger)
-  a.Server.Use(a.Authenticate)
+	a.Server.Use(a.Authenticate)
 
 	a.Server.NotFound(a.Dependencies.Handlers.NotFoundErrorResponse)
 	a.Server.MethodNotAllowed(a.Dependencies.Handlers.NotAllowedErrorResponse)

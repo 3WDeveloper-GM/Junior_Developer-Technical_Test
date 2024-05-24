@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,12 +17,23 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		message := "got a request with the following:"
 
+		value, err := r.Cookie("Bearer")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+    if value != nil {
+      fmt.Println(value.Value)
+    }
+
 		app.Logger.Info().Interface("request information", struct {
 			Method string `json:"method"`
 			Path   string `json:"path"`
+			Auth   string `json:"authHeader"`
 		}{
 			Method: r.Method,
 			Path:   r.URL.Path,
+			Auth:   r.Header.Get("Authorization"),
 		}).
 			Msg(message)
 
@@ -32,7 +44,7 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 			w.Header()[k] = v
 		}
 		w.WriteHeader(c.Code)
-		_, err := c.Body.WriteTo(w)
+		_, err = c.Body.WriteTo(w)
 		if err != nil {
 			app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
 		}
@@ -83,7 +95,7 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 
 		v := validator.NewValidator()
 
-		if domain.ValidatePasswordFromPlaintext(v, currentToken); !v.Valid() {
+		if auth.ValidateTokenLength(v, currentToken); !v.Valid() {
 			app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
 			return
 		}
