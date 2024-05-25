@@ -210,6 +210,7 @@ func (h *Handler) CreateAuthTokenPOST(w http.ResponseWriter, r *http.Request) {
 
 	message := map[string]interface{}{
 		"created":   true,
+		"message":   "login completed successfully",
 		"resultado": token,
 	}
 

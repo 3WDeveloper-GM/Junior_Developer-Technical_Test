@@ -1,5 +1,7 @@
 package app
 
+import "github.com/go-chi/chi/v5"
+
 const (
 	USER_WRITE_PERMISSION  = "users:write"
 	USER_READ_PERMISSION   = "users:read"
@@ -8,25 +10,34 @@ const (
 )
 
 func (a *Application) setRoutes() {
-	a.Server.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
+	a.Server.Post("/public/login", a.Dependencies.Handlers.CreateAuthTokenPOST)
+	a.Server.Group(func(r chi.Router) {
+		r.Use(a.CookieAuth)
+		r.Get("/public/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
+	})
+  
+	a.Server.Group(func(r chi.Router) {
+    r.Use(a.Authenticate)
+		r.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
 
-	a.Server.Get("/v1/bills/fetch/{id}",
-		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.FetchBillGET))
-	a.Server.Get("/v1/bills/fetchAll",
-		a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.BillsFetchByDateGET))
-	a.Server.Get("/v1/users/fetch",
-		a.RequirePermissions(USER_READ_PERMISSION, a.Dependencies.Handlers.FetchUserByMailGET))
+		r.Get("/v1/bills/fetch/{id}",
+			a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.FetchBillGET))
+		r.Get("/v1/bills/fetchAll",
+			a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.BillsFetchByDateGET))
+		r.Get("/v1/users/fetch",
+			a.RequirePermissions(USER_READ_PERMISSION, a.Dependencies.Handlers.FetchUserByMailGET))
 
-	a.Server.Post("/v1/sendJsonTest",
-		a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.SendJson))
-	a.Server.Post("/v1/bills/create",
-		a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillingPOST))
-	a.Server.Post("/v1/users/create",
-		a.RequirePermissions(USER_WRITE_PERMISSION, a.Dependencies.Handlers.UserCreatePOST))
+		r.Post("/v1/sendJsonTest",
+			a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.SendJson))
+		r.Post("/v1/bills/create",
+			a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillingPOST))
+		r.Post("/v1/users/create",
+			a.RequirePermissions(USER_WRITE_PERMISSION, a.Dependencies.Handlers.UserCreatePOST))
 
-	a.Server.Post("/v1/tokens/authenticate", a.Dependencies.Handlers.CreateAuthTokenPOST)
+		r.Post("/v1/tokens/authenticate", a.Dependencies.Handlers.CreateAuthTokenPOST)
 
-	a.Server.Delete("/v1/bills/delete/{id}", a.Dependencies.Handlers.SingleBillDELETE)
+		r.Delete("/v1/bills/delete/{id}", a.Dependencies.Handlers.SingleBillDELETE)
 
-	a.Server.Put("/v1/updateBill", a.Dependencies.Handlers.UpdateBillPUT)
+		r.Put("/v1/updateBill", a.Dependencies.Handlers.UpdateBillPUT)
+	})
 }

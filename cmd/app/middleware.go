@@ -2,7 +2,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,22 +18,26 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 
 		value, err := r.Cookie("Bearer")
 		if err != nil {
-			fmt.Println(err)
+			app.Logger.Debug().Err(err)
 		}
 
-    if value != nil {
-      fmt.Println(value.Value)
-    }
-
-		app.Logger.Info().Interface("request information", struct {
-			Method string `json:"method"`
-			Path   string `json:"path"`
-			Auth   string `json:"authHeader"`
+		args := struct {
+			Method         string `json:"method"`
+			Path           string `json:"path"`
+			Authentication string `json:"authentication,omitempty"`
+			Cookies        string `json:"cookie,omitempty"`
 		}{
-			Method: r.Method,
-			Path:   r.URL.Path,
-			Auth:   r.Header.Get("Authorization"),
-		}).
+			Method:         r.Method,
+			Path:           r.URL.Path,
+			Authentication: r.Header.Get("Authorization"),
+		}
+
+		if value != nil {
+			args.Cookies = value.Value
+		}
+
+		app.Logger.Info().
+			Interface("request information", args).
 			Msg(message)
 
 		c := httptest.NewRecorder()
@@ -70,6 +73,49 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 			}).
 				Msg(message)
 		}
+	})
+}
+
+func (app *Application) CookieAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		currentToken, err := r.Cookie("Bearer")
+		if err != nil {
+			switch {
+			case errors.Is(err, http.ErrNoCookie):
+				r = app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			default:
+				app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		v := validator.NewValidator()
+
+		if currentToken.Name != "Bearer" {
+			app.Dependencies.Handlers.AuthenticationFailedResponse(w, r)
+			return
+		}
+
+		if auth.ValidateTokenLength(v, currentToken.Value); !v.Valid() {
+			app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		user, err := app.Dependencies.Models.Users.GetForToken(auth.ScopeAuthentication, currentToken.Value)
+		if err != nil {
+			switch {
+			case errors.Is(err, models.ErrNoRows):
+				app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			default:
+				app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		r = app.Dependencies.Context.ContextSetUser(r, user)
+
+		next.ServeHTTP(w, r)
 	})
 }
 
