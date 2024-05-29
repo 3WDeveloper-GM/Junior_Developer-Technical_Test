@@ -78,13 +78,13 @@ func (b *billModel) DateFetch(startingDate string, endingDate string, user *doma
 	stmt := `
     SELECT id,id_factura,fecha_emision,monto_total,detalles, miscelaneo
     FROM bills
-    WHERE created_at >= $1 AND created_at <= $2 AND id_proveedor = $3 
+    WHERE created_at >= $1 AND created_at <= $2  AND id_proveedor = $3
   `
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
-	args := []interface{}{startingDate, endingDate,user.ProviderID}
+	args := []interface{}{startingDate, endingDate, user.ProviderID}
 
 	rows, err := b.DB.QueryContext(ctx, stmt, args...)
 	if err != nil {

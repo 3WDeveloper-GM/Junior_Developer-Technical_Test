@@ -16,6 +16,7 @@ import {
 } from "../../ui/form";
 import { Input } from "../../ui/input";
 import axios from "axios";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FormProps {
   alert: string;
@@ -33,6 +34,9 @@ const FormSchema = z.object({
 });
 
 const InputForm: React.FC<FormProps> = (props): JSX.Element => {
+
+  const context = useAuth()
+
   const { setAlert, setError } = props;
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -47,13 +51,23 @@ const InputForm: React.FC<FormProps> = (props): JSX.Element => {
       correoUsuario: data.username,
       contraUsuario: data.password,
     };
-    console.log("authentication submitted");
     axios
       .post("http://localhost:4040/public/login", authKeys)
       .then((response) => {
-        console.log("succesful");
+        const {id, usuario} = response.data.resultado
+
+        console.log(context)
+
+        context.logIn(usuario, id)
+
+        localStorage.setItem("username",usuario)
+        localStorage.setItem("userID",id)
+
         setAlert(response.data.message);
         setError(false)
+
+        console.log(context)
+
       })
       .catch((reject) => {
         console.error("unsuccessful");

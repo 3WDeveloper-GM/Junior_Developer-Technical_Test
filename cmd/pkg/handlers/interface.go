@@ -14,12 +14,13 @@ type Handler struct {
 	bills       BillModel
 	users       UsrModel
 	tokens      TokenModel
+	jwtToken    Jwt
 	permissions PermissionsModel
 	context     ContextRequest
 	help        Helper.Helper
 }
 
-func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel, permits PermissionsModel, context ContextRequest) *Handler {
+func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokMod TokenModel, permits PermissionsModel, context ContextRequest, jwt Jwt) *Handler {
 	return &Handler{
 		portNumber:  portNumber,
 		bills:       billMod,
@@ -27,6 +28,7 @@ func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokM
 		tokens:      tokMod,
 		permissions: permits,
 		context:     context,
+		jwtToken:    jwt,
 	}
 }
 
@@ -47,6 +49,11 @@ type TokenModel interface {
 	Insert(token *auth.Token) error
 	New(user int64, ttl time.Duration, scope string) (*auth.Token, error)
 	DeleteAllTokensFromUser(scope string, userID int) error
+}
+
+type Jwt interface {
+	VerifyToken(tokenString string) error
+	CreateToken(username string) (string, error)
 }
 
 type PermissionsModel interface {

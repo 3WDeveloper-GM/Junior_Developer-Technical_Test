@@ -1,6 +1,8 @@
 package app
 
-import "github.com/go-chi/chi/v5"
+import (
+	"github.com/go-chi/chi/v5"
+)
 
 const (
 	USER_WRITE_PERMISSION  = "users:write"
@@ -10,14 +12,19 @@ const (
 )
 
 func (a *Application) setRoutes() {
-	a.Server.Post("/public/login", a.Dependencies.Handlers.CreateAuthTokenPOST)
+	a.Server.Post("/public/login", a.Dependencies.Handlers.LoginJWTtokenPOST)
+
 	a.Server.Group(func(r chi.Router) {
-		r.Use(a.CookieAuth)
+		r.Use(a.JWTAuthentication)
+
+    r.Get("/public/whoAmI", a.Dependencies.Handlers.WhoAmIGET)
 		r.Get("/public/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
+		r.Post("/public/bills/create",
+			a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillingPOST))
 	})
-  
+
 	a.Server.Group(func(r chi.Router) {
-    r.Use(a.Authenticate)
+		r.Use(a.Authenticate)
 		r.Get("/v1/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
 
 		r.Get("/v1/bills/fetch/{id}",

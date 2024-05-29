@@ -13,6 +13,14 @@ import (
 	"github.com/go-chi/render"
 )
 
+func (h *Handler) WhoAmIGET(w http.ResponseWriter, r *http.Request) {
+	message := map[string]interface{}{
+		"message": "you are an authenticated user",
+	}
+
+	render.JSON(w, r, message)
+}
+
 func (h *Handler) HealthCheckGET(w http.ResponseWriter, r *http.Request) {
 	output := struct {
 		Message    string `json:"message"`
@@ -28,7 +36,7 @@ func (h *Handler) HealthCheckGET(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) FetchBillGET(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	n, err := strconv.ParseInt(id,10,64)
+	n, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return

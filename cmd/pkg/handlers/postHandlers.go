@@ -208,10 +208,16 @@ func (h *Handler) CreateAuthTokenPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userInfo := map[string]interface{}{
+		"usuario": user.Name,
+		"id":      user.ProviderID,
+	}
+
 	message := map[string]interface{}{
 		"created":   true,
 		"message":   "login completed successfully",
-		"resultado": token,
+		"resultado": userInfo,
+		"token":     token.Plaintext,
 	}
 
 	cookie := http.Cookie{
@@ -222,9 +228,114 @@ func (h *Handler) CreateAuthTokenPOST(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		Secure:   false,
 		Path:     "/",
+		MaxAge:   24 * 60,
 	}
 
 	http.SetCookie(w, &cookie)
+
+	render.JSON(w, r, message)
+}
+
+func (h *Handler) CreateAutheticationTokenJWTPOST(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		UserMail string `json:"correoUsuario"`
+		Password string `json:"contraUsuario"`
+	}
+
+	err := render.DecodeJSON(r.Body, &input)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+		return
+	}
+
+	valid := validator.NewValidator()
+
+	domain.ValidateEmail(valid, input.UserMail)
+	domain.ValidatePasswordFromPlaintext(valid, input.Password)
+
+	if !valid.Valid() {
+		h.ValidationErrorResponse(w, r, valid.Errors)
+		return
+	}
+
+	user, err := h.users.Fetch(input.UserMail)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrNoRows):
+			h.InvalidCredentialsResponse(w, r)
+		default:
+			h.InternalServerErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	match, err := user.Password.Matches(input.Password)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+		return
+	}
+
+	if !match {
+		h.InvalidCredentialsResponse(w, r)
+		return
+	}
+}
+
+func (h *Handler) LoginJWTtokenPOST(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := render.DecodeJSON(r.Body, &input)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+		return
+	}
+
+	valid := validator.NewValidator()
+
+	domain.ValidateEmail(valid, input.Email)
+	domain.ValidatePasswordFromPlaintext(valid, input.Password)
+
+	if !valid.Valid() {
+		h.ValidationErrorResponse(w, r, valid.Errors)
+		return
+	}
+
+	user, err := h.users.Fetch(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrNoRows):
+			h.InvalidCredentialsResponse(w, r)
+		default:
+			h.InternalServerErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	match, err := user.Password.Matches(input.Password)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+	}
+
+	if !match {
+		h.InvalidCredentialsResponse(w, r)
+		return
+	}
+
+	jwtToken, err := h.jwtToken.CreateToken(user.Name)
+	if err != nil {
+		h.InternalServerErrorResponse(w, r, err)
+		return
+	}
+
+	message := map[string]interface{}{
+		"info":      "token created",
+		"token":     jwtToken,
+		"userName":  user.Name,
+		"userEmail": user.Email,
+	}
 
 	render.JSON(w, r, message)
 }

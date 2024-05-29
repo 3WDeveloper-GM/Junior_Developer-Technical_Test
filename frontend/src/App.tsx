@@ -1,19 +1,29 @@
-import axios from "axios";
-import { LoginForm } from "./src/components/pages/login";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { routeTree } from "./routeTree.gen";
+import AuthProvider, { useProvideAuth } from "./src/utils/authentication";
+
+const router = createRouter({
+  routeTree,
+  context: { authentication: undefined! },
+});
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
 const App = () => {
-  axios.defaults.withCredentials = true;
-  setTimeout(
-    () =>
-      axios
-        .get("http://localhost:4040/public/healthCheck", {
-          withCredentials: true,
-        })
-        .then((response) => console.log(response))
-        .catch((error) => console.log(error.response.data.error)),
-    1000,
+  const AuthenticationContext = useProvideAuth();
+
+  return (
+    <AuthProvider>
+      <RouterProvider
+        router={router}
+        context={{ authentication: AuthenticationContext }}
+      />
+    </AuthProvider>
   );
-  return <LoginForm />;
 };
 
 export default App;

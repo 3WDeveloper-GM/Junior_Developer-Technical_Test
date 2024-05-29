@@ -9,6 +9,7 @@ import (
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/context"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/handlers/validator"
+	"github.com/3WDeveloper-GM/billings/cmd/pkg/jwt"
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -30,22 +31,26 @@ type dependency struct {
 	Models   models.AppModels
 	Context  context.ContextKey
 	Valid    validator.Validator
+  JWTToken Jwt
 }
 
 func (a *Application) setDependencies() {
 	newCtx := context.NewContext()
+	jwtToken := jwt.NewJwtToken()
 
 	mods := models.InitializeAppModels(a.Config.DB)
 	handler := handlers.NewHandlerInstance(
 		portnumber, mods.Bills,
 		mods.Users, mods.Tokens,
 		mods.Permits, newCtx,
+		jwtToken,
 	)
 
 	depends := &dependency{
 		Handlers: *handler,
 		Models:   *mods,
 		Context:  *newCtx,
+    JWTToken: jwtToken,
 	}
 
 	a.Dependencies = depends
@@ -55,10 +60,10 @@ func (a *Application) setServer() {
 	a.Server = chi.NewRouter()
 	a.Server.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://localhost:5173"},
+		AllowedOrigins: []string{"https://*", "http://*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Origin"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers

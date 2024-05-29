@@ -24,7 +24,7 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 		args := struct {
 			Method         string `json:"method"`
 			Path           string `json:"path"`
-			Authentication string `json:"authentication,omitempty"`
+			Authentication string `json:"authorization,omitempty"`
 			Cookies        string `json:"cookie,omitempty"`
 		}{
 			Method:         r.Method,
@@ -74,6 +74,40 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 				Msg(message)
 		}
 	})
+}
+
+func (app *Application) JWTAuthentication(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    
+    w.Header().Set("Content-Type","application/json")
+
+    tokenString := r.Header.Get("Authorization")
+    if tokenString == "" {
+      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
+      next.ServeHTTP(w,r)
+    }
+
+    headerSections := strings.Split(tokenString," ")
+
+    if headerSections[0] != "Bearer" || len(headerSections) != 2 {
+      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
+      next.ServeHTTP(w,r)
+    }
+
+    app.Logger.Info().Interface("header",headerSections)
+
+    token := headerSections[1]
+
+    err := app.Dependencies.JWTToken.VerifyToken(token)
+    if err != nil {
+      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
+      next.ServeHTTP(w,r)
+    }
+
+    next.ServeHTTP(w,r)
+
+
+  })
 }
 
 func (app *Application) CookieAuth(next http.Handler) http.Handler {

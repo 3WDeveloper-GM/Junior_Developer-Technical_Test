@@ -41,7 +41,7 @@ func (m *userModel) Create(user *domain.Users) error {
 
 func (m *userModel) Fetch(email string) (*domain.Users, error) {
 	query := `
-    SELECT id, created_at, name, email, password_hash, activated
+    SELECT id, provider_id, name, email, password_hash, activated
     FROM users
     WHERE email = $1
   `
@@ -55,7 +55,7 @@ func (m *userModel) Fetch(email string) (*domain.Users, error) {
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&user.SysID,
-		&user.Created_at,
+		&user.ProviderID,
 		&user.Name,
 		&user.Email,
 		&user.Password.Hash,

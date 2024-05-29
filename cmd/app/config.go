@@ -7,18 +7,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
 type Config struct {
-	database database
-	DB       *sql.DB
-	cors     struct {
-		trustedOrigins []string
-	}
+	database  database
+	DB        *sql.DB
+	jwtSecret string
 }
 
 type database struct {
@@ -41,10 +38,7 @@ func (a *Application) setConfiguration() error {
 	flag.IntVar(&cfg.database.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.database.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
 
-	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
-		cfg.cors.trustedOrigins = strings.Fields(val)
-		return nil
-	})
+	flag.StringVar(&cfg.jwtSecret, "jwt-secret", os.Getenv("JWT_SECRET_KEY"), "key for the jwt web token auth")
 
 	flag.Parse()
 
