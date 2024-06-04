@@ -34,7 +34,7 @@ func NewHandlerInstance(portNumber int, billMod BillModel, usrMod UsrModel, tokM
 
 type BillModel interface {
 	Create(payload *domain.Bill) error
-	Delete(id int) error
+	Delete(id string) error
 	Fetch(bill *domain.Bill, id int64) error
 	DateFetch(string, string, *domain.Users) ([]*domain.Bill, error)
 	Update(*domain.Bill) error
@@ -52,8 +52,8 @@ type TokenModel interface {
 }
 
 type Jwt interface {
-	VerifyToken(tokenString string) error
-	CreateToken(username string) (string, error)
+	VerifyToken(tokenString string) (string, error)
+	CreateToken(username string, email string) (string, error)
 }
 
 type PermissionsModel interface {

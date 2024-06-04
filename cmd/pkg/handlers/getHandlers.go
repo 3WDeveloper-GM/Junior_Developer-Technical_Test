@@ -14,8 +14,11 @@ import (
 )
 
 func (h *Handler) WhoAmIGET(w http.ResponseWriter, r *http.Request) {
+  user := h.context.ContextGetUser(r)
+
 	message := map[string]interface{}{
 		"message": "you are an authenticated user",
+    "user":user,
 	}
 
 	render.JSON(w, r, message)

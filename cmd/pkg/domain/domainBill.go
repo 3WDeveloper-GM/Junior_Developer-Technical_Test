@@ -5,7 +5,7 @@ func (b *Bill) ValidateBill(v validate) bool {
 	v.Check(len(b.BillID) <= 40, "idFactura", "must not be greater than 40 characters")
 
 	v.Check(b.Date != "", "fechaEmision", "must be non-empty")
-	v.Check(len(b.Date) <= 20, "fechaEmision", "must not be greater than 20 characters")
+	v.Check(len(b.Date) <= 34, "fechaEmision", "must not be greater than 35 characters")
 
 	v.Check(b.TotalAmmount != nil, "montoTotal", "must be provided")
 	v.Check(*b.TotalAmmount > 0, "montoTotal", "must be a positive ammount")

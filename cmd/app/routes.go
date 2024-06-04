@@ -17,8 +17,14 @@ func (a *Application) setRoutes() {
 	a.Server.Group(func(r chi.Router) {
 		r.Use(a.JWTAuthentication)
 
-    r.Get("/public/whoAmI", a.Dependencies.Handlers.WhoAmIGET)
+		r.Get("/public/whoAmI", a.Dependencies.Handlers.WhoAmIGET)
 		r.Get("/public/healthCheck", a.RequireUserAuth(a.Dependencies.Handlers.HealthCheckGET))
+		r.Get("/public/bills/fetch", a.RequirePermissions(BILLS_READ_PERMISSION, a.Dependencies.Handlers.BillsFetchByDateGET))
+
+		r.Put("/public/bills/update", a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillUpdateClientPUT))
+
+		r.Delete("/public/bills/delete/{id}", a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.SingleBillDELETE))
+
 		r.Post("/public/bills/create",
 			a.RequirePermissions(BILLS_WRITE_PERMISSION, a.Dependencies.Handlers.BillingPOST))
 	})

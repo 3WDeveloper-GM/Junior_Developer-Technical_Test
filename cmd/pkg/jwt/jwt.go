@@ -8,6 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type customClaims struct {
+	User  string `json:"user"`
+	Email string `json:"email"`
+	jwt.RegisteredClaims
+}
+
 type jwtToken struct {
 	secretKey []byte
 }
@@ -22,12 +28,19 @@ func NewJwtToken() *jwtToken {
 	return &jwtToken{secretKey: []byte(secretKey)}
 }
 
-func (jw *jwtToken) CreateToken(username string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(24 * time.Hour).Unix(),
-		})
+func (jw *jwtToken) CreateToken(username string, email string) (string, error) {
+	claims := customClaims{
+		username,
+		email,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "billings",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jw.secretKey)
 	if err != nil {
 		return "", err
@@ -36,17 +49,27 @@ func (jw *jwtToken) CreateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func (jw *jwtToken) VerifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return jw.secretKey, nil
-	})
+func (jw *jwtToken) VerifyToken(tokenString string) (string, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &customClaims{},
+		func(token *jwt.Token) (interface{}, error) {
+			return jw.secretKey, nil
+		})
+
+	claims, ok := token.Claims.(*customClaims)
+
+	if ok {
+		log.Info().Msg(claims.Email)
+	} else {
+		return "", errInvalidToken
+	}
+
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !token.Valid {
-		return errInvalidToken
+		return "", errInvalidToken
 	}
 
-	return nil
+	return claims.Email, nil
 }

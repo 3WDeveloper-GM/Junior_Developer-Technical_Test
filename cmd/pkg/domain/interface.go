@@ -31,12 +31,12 @@ type validate interface {
 // User is a structure that model the end user
 type Users struct {
 	SysID      int64       `json:"-"`
-	Created_at time.Time `json:"fechaCreacion"`
+	Created_at time.Time `json:"-"`
 	ProviderID string    `json:"idProveedor"`
 	Name       string    `json:"nombre"`
 	Email      string    `json:"email"`
 	Password   passWord  `json:"-"`
-	Activated  bool      `json:"activado"`
+	Activated  bool      `json:"-"`
 	Version    int       `json:"version,omitempty"`
 }
 

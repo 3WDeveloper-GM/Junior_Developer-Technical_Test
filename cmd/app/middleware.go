@@ -77,37 +77,50 @@ func (app *Application) VisitedRouteLogger(next http.Handler) http.Handler {
 }
 
 func (app *Application) JWTAuthentication(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    
-    w.Header().Set("Content-Type","application/json")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 
-    tokenString := r.Header.Get("Authorization")
-    if tokenString == "" {
-      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
-      next.ServeHTTP(w,r)
-    }
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+      r = app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			app.Dependencies.Handlers.AuthenticationFailedResponse(w, r)
+			return
+		}
 
-    headerSections := strings.Split(tokenString," ")
+		headerSections := strings.Split(tokenString, " ")
 
-    if headerSections[0] != "Bearer" || len(headerSections) != 2 {
-      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
-      next.ServeHTTP(w,r)
-    }
+		if headerSections[0] != "Bearer" || len(headerSections) != 2 {
+      r = app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			app.Dependencies.Handlers.AuthenticationFailedResponse(w, r)
+			return
+		}
 
-    app.Logger.Info().Interface("header",headerSections)
+		app.Logger.Info().Interface("header", headerSections)
 
-    token := headerSections[1]
+		token := headerSections[1]
 
-    err := app.Dependencies.JWTToken.VerifyToken(token)
-    if err != nil {
-      app.Dependencies.Handlers.AuthenticationFailedResponse(w,r)
-      next.ServeHTTP(w,r)
-    }
+		email, err := app.Dependencies.JWTToken.VerifyToken(token)
+		if err != nil {
+      r = app.Dependencies.Context.ContextSetUser(r, domain.AnonUser)
+			app.Dependencies.Handlers.AuthenticationFailedResponse(w, r)
+			next.ServeHTTP(w, r)
+		}
 
-    next.ServeHTTP(w,r)
+		user, err := app.Dependencies.Models.Users.Fetch(email)
+		if err != nil {
+			switch {
+			case errors.Is(err, models.ErrNoRows):
+				app.Dependencies.Handlers.InvalidAuthenticationTokenResponse(w, r)
+			default:
+				app.Dependencies.Handlers.InternalServerErrorResponse(w, r, err)
+			}
+			return
+		}
 
+		r = app.Dependencies.Context.ContextSetUser(r, user)
 
-  })
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (app *Application) CookieAuth(next http.Handler) http.Handler {

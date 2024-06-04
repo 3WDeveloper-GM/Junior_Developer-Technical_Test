@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/3WDeveloper-GM/billings/cmd/pkg/domain"
+	"github.com/rs/zerolog/log"
 )
 
 type billModel struct {
@@ -32,10 +33,10 @@ func (b *billModel) Create(payload *domain.Bill) error {
 	return b.DB.QueryRow(stmt, args...).Scan(&payload.SysID, &payload.Created_at)
 }
 
-func (b *billModel) Delete(id int) error {
+func (b *billModel) Delete(id string) error {
 	stmt := `
     DELETE FROM bills 
-    WHERE id = $1
+    WHERE id_factura = $1
   `
 
 	result, err := b.DB.Exec(stmt, id)
@@ -125,12 +126,14 @@ func (b *billModel) DateFetch(startingDate string, endingDate string, user *doma
 func (b *billModel) Update(bill *domain.Bill) error {
 	stmt := `
     UPDATE bills
-    SET id_factura =$1, fecha_emision = $2, monto_total = $3,
+    SET fecha_emision = $2, monto_total = $3,
     id_proveedor =$4, nombre_proveedor = $5, detalles =$6,
     miscelaneo =$7, version = version+1
-    WHERE id = $8
+    WHERE id_factura = $1
     RETURNING version
   `
+  
+  log.Debug().Interface("bill",bill).Msg("")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -143,7 +146,6 @@ func (b *billModel) Update(bill *domain.Bill) error {
 		bill.Provider.Name,
 		bill.Details,
 		bill.Misc,
-		bill.SysID,
 	}
 
 	return b.DB.QueryRowContext(ctx,stmt,args...).Scan(&bill.Version)

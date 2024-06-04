@@ -324,7 +324,7 @@ func (h *Handler) LoginJWTtokenPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwtToken, err := h.jwtToken.CreateToken(user.Name)
+	jwtToken, err := h.jwtToken.CreateToken(user.Name, user.Email)
 	if err != nil {
 		h.InternalServerErrorResponse(w, r, err)
 		return
