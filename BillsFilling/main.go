@@ -44,7 +44,6 @@ type Bill struct {
 }
 
 func main() {
-	dsn := "postgresql://billingadmin:WvgIO6DIXtWwkmJbx3aaqw@brawny-gecko-14732.7tt.aws-us-east-1.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
 
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
