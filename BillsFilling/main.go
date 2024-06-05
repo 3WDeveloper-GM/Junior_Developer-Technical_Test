@@ -45,6 +45,8 @@ type Bill struct {
 
 func main() {
 
+  dsn := "a"
+
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
 	if err != nil {
