@@ -17,6 +17,8 @@ I'll elaborate my building process in detail into this document. First, I think 
 
 ## Features
 
+![image](./screenshots/fetch.png)
+
 So far I have developed a system that can do basic bill management operations, which are:
 
 - Bill Creation: It's done one at a time, mimicking the actions of a clerk inside a store. That being said, the form that does the creation can be accomodated in order to meet the details and miscelaneous information that the companies will need to store in the bill information. The authentication is done both in the client (using ```zod```) and in the backend, using validation checks regarding the desired shape that the bill fields must adhere to. 
