@@ -17,7 +17,7 @@ I'll elaborate my building process in detail into this document. First, I think 
 
 ## Features
 
-![image]('./screenshots/Fetch.png')
+![image](/screenshots/Fetch.png)
 
 So far I have developed a system that can do basic bill management operations, which are:
 
