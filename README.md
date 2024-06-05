@@ -29,4 +29,16 @@ So far I have developed a system that can do basic bill management operations, w
 
 - Bill Update: With this feature I decided to use a *PUT* endpoint, mostly due to the fact that I'll fill the other fields in the update form using placeholder values lifted directly from the bill that will be updated.  
 
+## How to run the project
 
+1. Regarding the backend: you can run the following commands in the root directory order to run the project:
+```
+go build ./cmd
+```
+
+2. Regarding the frontend: you will need to perform the following commands from the root directory of the project in order to run the client:
+```
+cd client_side
+npm install 
+npm run dev
+```
