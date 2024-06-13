@@ -40,7 +40,6 @@ export const LogForm: FC<LogFormProps> = (props) => {
   const { mutate } = props;
 
   const submit = () => {
-    console.log(formPassword, formEmail)
     mutate({ password: formPassword, email: formEmail });
   };
 

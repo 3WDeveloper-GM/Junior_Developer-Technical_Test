@@ -81,9 +81,8 @@ export const FetchForm: FC<FetchFormProps> = (props) => {
                   <FormControl>
                     <Input
                       type={item.type}
-                      placeholder={item.placeholder}
+                      placeholder={item.value}
                       {...field}
-                      value={item.value}
                     />
                   </FormControl>
                   <FormMessage />
